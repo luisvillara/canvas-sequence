@@ -1,6 +1,6 @@
 class CanvasSequence {
 
-    constructor(canvas, sequencePath, sequenceStart, sequenceEnd, fileType, loadCallback, frameCallbacks = []) {
+    constructor(canvas, sequencePath, sequenceStart, sequenceEnd, fileType, loadCallback, onDraw) {
 
         this.sequence = [];
 
@@ -28,7 +28,7 @@ class CanvasSequence {
 
         this.loadCallback = loadCallback || function() {};
 
-        this.frameCallbacks = frameCallbacks;
+        this.onDraw = typeof onDraw === 'function' ? onDraw : null;
 
         this.loadSequence();
     }
@@ -95,18 +95,6 @@ class CanvasSequence {
 
     }
 
-    notifyFrameCallbacks(previousFrame, currentFrame, frameCallbacks) {
-      frameCallbacks
-        .forEach(({ frame, onEnter = () => {}, onLeave = () => {} }) => {
-          if (currentFrame < frame && frame <= previousFrame) {
-            onLeave.call(this);
-          }
-          else if (previousFrame < frame && frame <= currentFrame) {
-            onEnter.call(this);
-          }
-        });
-    }
-
     renderFrame() {
 
         this.syncScrollPosition();
@@ -120,7 +108,7 @@ class CanvasSequence {
 
         if( (this.currentFrame != this.previousFrame) || this.firstLoad) {
             this.drawImage(this.currentFrame);
-            this.notifyFrameCallbacks(this.previousFrame, this.currentFrame, this.frameCallbacks);
+            this.onDraw && this.onDraw.call(null, this.previousFrame, this.currentFrame);
         }
 
         this.firstLoad = false;

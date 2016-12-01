@@ -25,10 +25,7 @@ If your images names are prefixed (ex. img_000.jpg) you must include the prefix 
 - **sequenceEnd** (Int) : the number of the last frame
 - **fileType** (String) : the file extension you want to use (ex. 'jpg')
 - **loadCallback** (function) : a callback to be notified when all images are loaded and ready to use
-- **frameCallbacks** (Array) : optional array of objects with the shape:
-  - `frame` (`Int`) - frame number to listen for
-  - `onEnter` (`function`) - callback to be notified when the frame is scrolled passed (scrolling down)
-  - `onLeave` (`function`) - callback to be notified when the frame is scrolled passed (scrolling up)
+- **onDraw** (`function(previousFrame:Int, currentFrame:Int)`) : a callback to be notified when the drawn frame changes
 
 ## Init
 

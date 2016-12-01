@@ -1,6 +1,6 @@
 {
   "name": "canvas-sequence",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Animate an image sequence on scroll.",
   "main": "index.js",
   "scripts": {
