@@ -1,6 +1,6 @@
 {
   "name": "canvas-sequence",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Animate an image sequence on scroll.",
   "main": "index.js",
   "scripts": {
@@ -8,19 +8,19 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/simoncorompt/canvas-sequence.git"
+    "url": "git+https://github.com/ginlane/canvas-sequence.git"
   },
   "keywords": [
     "canvas",
     "scroll",
     "sequence"
   ],
-  "author": "Simon Corompt",
+  "author": "Gin Lane Media (forked from Simon Corompt)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/simoncorompt/canvas-sequence/issues"
+    "url": "https://github.com/ginlane/canvas-sequence/issues"
   },
-  "homepage": "https://github.com/simoncorompt/canvas-sequence#readme",
+  "homepage": "https://github.com/ginlane/canvas-sequence#readme",
   "devDependencies": {
     "gulp": "^3.9.0",
     "gulp-babel": "^5.2.1",
