@@ -1,6 +1,6 @@
 class CanvasSequence {
 
-    constructor(canvas, sequencePath, sequenceStart, sequenceEnd, fileType, loadCallback) {
+    constructor(canvas, sequencePath, sequenceStart, sequenceEnd, fileType, loadCallback, frameCallbacks = []) {
 
         this.sequence = [];
 
@@ -27,6 +27,8 @@ class CanvasSequence {
         this.clientHeight = window.innerHeight;
 
         this.loadCallback = loadCallback || function() {};
+
+        this.frameCallbacks = frameCallbacks;
 
         this.loadSequence();
     }
@@ -93,6 +95,18 @@ class CanvasSequence {
 
     }
 
+    notifyFrameCallbacks(previousFrame, currentFrame, frameCallbacks) {
+      frameCallbacks
+        .forEach(({ frame, onEnter = () => {}, onLeave = () => {} }) => {
+          if (currentFrame < frame && frame <= previousFrame) {
+            onLeave.call(this);
+          }
+          else if (previousFrame < frame && frame <= currentFrame) {
+            onEnter.call(this);
+          }
+        });
+    }
+
     renderFrame() {
 
         this.syncScrollPosition();
@@ -106,6 +120,7 @@ class CanvasSequence {
 
         if( (this.currentFrame != this.previousFrame) || this.firstLoad) {
             this.drawImage(this.currentFrame);
+            this.notifyFrameCallbacks(this.previousFrame, this.currentFrame, this.frameCallbacks);
         }
 
         this.firstLoad = false;
