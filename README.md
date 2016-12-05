@@ -26,7 +26,8 @@ If your images names are prefixed (ex. img_000.jpg) you must include the prefix 
 - **fileType** (String) : the file extension you want to use (ex. 'jpg')
 - **loadCallback** (function) : a callback to be notified when all images are loaded and ready to use
 - **onDraw** (`function(previousFrame:Int, currentFrame:Int)`) : a callback to be notified when the drawn frame changes
-
+- **autoPlay** (Boolean) : Defaults to `false`. a flag to make the sequence play without binding to scroll (like a regular video)
+- **fps** (Number) : Defaults to `24`. frames per second to use for video-like playback
 ## Init
 
 ```javascript

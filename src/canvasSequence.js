@@ -1,6 +1,9 @@
 class CanvasSequence {
 
-    constructor(canvas, sequencePath, sequenceStart, sequenceEnd, fileType, loadCallback, onDraw) {
+    /**
+     * @param autoPlay {Boolean} - True to play the canvas video without binding to scroll
+     */
+    constructor(canvas, sequencePath, sequenceStart, sequenceEnd, fileType, loadCallback, onDraw, autoPlay = false, fps = 24) {
 
         this.sequence = [];
 
@@ -27,10 +30,27 @@ class CanvasSequence {
         this.clientHeight = window.innerHeight;
 
         this.loadCallback = loadCallback || function() {};
-
         this.onDraw = typeof onDraw === 'function' ? onDraw : null;
+        this.autoPlay = autoPlay;
+        this.isPaused = false;
+        this.fps = fps; // 23.976 ?
 
         this.loadSequence();
+    }
+
+    pause() {
+        this.isPaused = true;
+    }
+
+    play() {
+        if (!this.isPaused) {
+            return;
+        }
+
+        // reset startTime so that it is relative to the current replay time
+        const now = +new Date();
+        this.startTime = now - (this.currentFrame / this.fps * 1000)
+        this.isPaused = false;
     }
 
     addLeadingZeros(n) {
@@ -72,14 +92,47 @@ class CanvasSequence {
         });
     }
 
-    getNextFrameNumber() {
+    getScrollFrameNumber() {
         var scrollPercentage = (this.scrollOffset/(this.scrollHeight-this.clientHeight))*100;
         var currentFrameNumber = Math.round(scrollPercentage*this.sequenceLength/100);
         return currentFrameNumber;
     }
 
+    getAutoPlayFrameNumber() {
+        return Math.round(this.fps * this.playOffset);
+    }
+
+    getNextFrameNumber() {
+        if (this.autoPlay) {
+            return this.getAutoPlayFrameNumber();
+        }
+
+        return this.getScrollFrameNumber();
+    }
+
     syncScrollPosition() {
         this.scrollOffset = document.body.scrollTop;
+    }
+
+    syncAutoPlayPosition() {
+        const now = +new Date();
+        if (!this.startTime) {
+            this.startTime = now;
+            this.isPaused = false;
+        }
+
+        if (!this.isPaused) {
+            this.playOffset = ((now - this.startTime) / 1000) % (this.sequenceLength / this.fps);
+        }
+    }
+
+    syncPlayPosition() {
+        // no scroll tracking for autoplay
+        if (this.autoPlay) {
+            return this.syncAutoPlayPosition();
+        }
+
+        return this.syncScrollPosition();
     }
 
     drawImage(frame) {
@@ -97,7 +150,7 @@ class CanvasSequence {
 
     renderFrame() {
 
-        this.syncScrollPosition();
+        this.syncPlayPosition();
 
         requestAnimationFrame(() => {
             this.renderFrame();
@@ -106,7 +159,7 @@ class CanvasSequence {
         this.previousFrame = this.currentFrame;
         this.currentFrame = this.getNextFrameNumber();
 
-        if( (this.currentFrame != this.previousFrame) || this.firstLoad) {
+        if ((this.currentFrame != this.previousFrame) || this.firstLoad) {
             this.drawImage(this.currentFrame);
             this.onDraw && this.onDraw.call(null, this.previousFrame, this.currentFrame);
         }
