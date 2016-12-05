@@ -1,7 +1,38 @@
 class CanvasSequence {
 
-    constructor(canvas, sequencePath, sequenceStart, sequenceEnd, fileType, loadCallback, onDraw) {
+    /**
+     * @see ctor
+     */
+    constructor(canvasOrOpts, sequencePath, sequenceStart, sequenceEnd, fileType, loadCallback, onDraw, autoPlay = false, fps = 24) {
+        if (typeof canvasOrOpts === 'object') {
+            // first param is an object of options
+            return this.ctor(canvasOrOpts);
+        }
 
+        this.ctor({
+            canvas: canvasOrOpts,
+            sequencePath,
+            sequenceStart,
+            sequenceEnd,
+            fileType,
+            loadCallback,
+            onDraw,
+            autoPlay,
+            fps
+        });
+    }
+    /**
+     * @param opts.canvasId {String} - id of the canvas tag you want to use
+     * @param opts.sequencePath {String} - the path to your image sequence (ex. './img/sequence/'). If your images names are prefixed (ex. img_000.jpg) you must include the prefix in the path.
+     * @param opts.sequenceStart {Int} - the number of the first frame (ex. if your first frame is img_00056.jpg then sequenceStart = 56)
+     * @param opts.sequenceEnd {Int} - the number of the last frame
+     * @param opts.fileType {String} - the file extension you want to use (ex. 'jpg')
+     * @param opts.loadCallback {function} - a callback to be notified when all images are loaded and ready to use
+     * @param opts.onDraw {function(previousFrame:Int, currentFrame:Int)`} - a callback to be notified when the drawn frame changes
+     * @param opts.autoPlay {Boolean} - Defaults to `false`. a flag to make the sequence play without binding to scroll (like a regular video)
+     * @param opts.fps {Number} - Defaults to `24`. Frames per second to use for video-like playback
+     */
+    ctor({ canvas, sequencePath, sequenceStart, sequenceEnd, fileType, loadCallback, onDraw, autoPlay = false, fps = 24 }) {
         this.sequence = [];
 
         this.canvas = document.getElementById(canvas);
@@ -27,10 +58,27 @@ class CanvasSequence {
         this.clientHeight = window.innerHeight;
 
         this.loadCallback = loadCallback || function() {};
-
         this.onDraw = typeof onDraw === 'function' ? onDraw : null;
+        this.autoPlay = autoPlay;
+        this.isPaused = false;
+        this.fps = fps;
 
         this.loadSequence();
+    }
+
+    pause() {
+        this.isPaused = true;
+    }
+
+    play() {
+        if (!this.isPaused) {
+            return;
+        }
+
+        // reset startTime so that it is relative to the current replay time
+        const now = +new Date();
+        this.startTime = now - (this.currentFrame / this.fps * 1000)
+        this.isPaused = false;
     }
 
     addLeadingZeros(n) {
@@ -72,20 +120,53 @@ class CanvasSequence {
         });
     }
 
-    getNextFrameNumber() {
+    getScrollFrameNumber() {
         var scrollPercentage = (this.scrollOffset/(this.scrollHeight-this.clientHeight))*100;
         var currentFrameNumber = Math.round(scrollPercentage*this.sequenceLength/100);
         return currentFrameNumber;
+    }
+
+    getAutoPlayFrameNumber() {
+        return Math.round(this.fps * this.playOffset);
+    }
+
+    getNextFrameNumber() {
+        if (this.autoPlay) {
+            return this.getAutoPlayFrameNumber();
+        }
+
+        return this.getScrollFrameNumber();
     }
 
     syncScrollPosition() {
         this.scrollOffset = document.body.scrollTop;
     }
 
+    syncAutoPlayPosition() {
+        const now = +new Date();
+        if (!this.startTime) {
+            this.startTime = now;
+            this.isPaused = false;
+        }
+
+        if (!this.isPaused) {
+            this.playOffset = ((now - this.startTime) / 1000) % (this.sequenceLength / this.fps);
+        }
+    }
+
+    syncPlayPosition() {
+        // no scroll tracking for autoplay
+        if (this.autoPlay) {
+            return this.syncAutoPlayPosition();
+        }
+
+        return this.syncScrollPosition();
+    }
+
     drawImage(frame) {
 
         if(frame >= 0 && frame < this.sequence.length) {
-            this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            // this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
             if(this.sequence[frame].complete) {
                 this.context.drawImage(this.sequence[frame], 0, 0, this.canvas.width, this.canvas.height);
             } else {
@@ -97,7 +178,7 @@ class CanvasSequence {
 
     renderFrame() {
 
-        this.syncScrollPosition();
+        this.syncPlayPosition();
 
         requestAnimationFrame(() => {
             this.renderFrame();
@@ -106,7 +187,7 @@ class CanvasSequence {
         this.previousFrame = this.currentFrame;
         this.currentFrame = this.getNextFrameNumber();
 
-        if( (this.currentFrame != this.previousFrame) || this.firstLoad) {
+        if ((this.currentFrame != this.previousFrame) || this.firstLoad) {
             this.drawImage(this.currentFrame);
             this.onDraw && this.onDraw.call(null, this.previousFrame, this.currentFrame);
         }
