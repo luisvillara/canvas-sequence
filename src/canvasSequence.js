@@ -1,10 +1,38 @@
 class CanvasSequence {
 
     /**
-     * @param autoPlay {Boolean} - True to play the canvas video without binding to scroll
+     * @see ctor
      */
-    constructor(canvas, sequencePath, sequenceStart, sequenceEnd, fileType, loadCallback, onDraw, autoPlay = false, fps = 24) {
+    constructor(canvasOrOpts, sequencePath, sequenceStart, sequenceEnd, fileType, loadCallback, onDraw, autoPlay = false, fps = 24) {
+        if (typeof canvasOrOpts === 'object') {
+            // first param is an object of options
+            return this.ctor(canvasOrOpts);
+        }
 
+        this.ctor({
+            canvas: canvasOrOpts,
+            sequencePath,
+            sequenceStart,
+            sequenceEnd,
+            fileType,
+            loadCallback,
+            onDraw,
+            autoPlay,
+            fps
+        });
+    }
+    /**
+     * @param opts.canvasId {String} - id of the canvas tag you want to use
+     * @param opts.sequencePath {String} - the path to your image sequence (ex. './img/sequence/'). If your images names are prefixed (ex. img_000.jpg) you must include the prefix in the path.
+     * @param opts.sequenceStart {Int} - the number of the first frame (ex. if your first frame is img_00056.jpg then sequenceStart = 56)
+     * @param opts.sequenceEnd {Int} - the number of the last frame
+     * @param opts.fileType {String} - the file extension you want to use (ex. 'jpg')
+     * @param opts.loadCallback {function} - a callback to be notified when all images are loaded and ready to use
+     * @param opts.onDraw {function(previousFrame:Int, currentFrame:Int)`} - a callback to be notified when the drawn frame changes
+     * @param opts.autoPlay {Boolean} - Defaults to `false`. a flag to make the sequence play without binding to scroll (like a regular video)
+     * @param opts.fps {Number} - Defaults to `24`. Frames per second to use for video-like playback
+     */
+    ctor({ canvas, sequencePath, sequenceStart, sequenceEnd, fileType, loadCallback, onDraw, autoPlay = false, fps = 24 }) {
         this.sequence = [];
 
         this.canvas = document.getElementById(canvas);
@@ -33,7 +61,7 @@ class CanvasSequence {
         this.onDraw = typeof onDraw === 'function' ? onDraw : null;
         this.autoPlay = autoPlay;
         this.isPaused = false;
-        this.fps = fps; // 23.976 ?
+        this.fps = fps;
 
         this.loadSequence();
     }
@@ -138,7 +166,7 @@ class CanvasSequence {
     drawImage(frame) {
 
         if(frame >= 0 && frame < this.sequence.length) {
-            this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            // this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
             if(this.sequence[frame].complete) {
                 this.context.drawImage(this.sequence[frame], 0, 0, this.canvas.width, this.canvas.height);
             } else {
