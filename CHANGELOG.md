@@ -1,3 +1,7 @@
+# 1.1.3
+
+* Fix package.json `main` definition
+
 # 1.1.2
 
 * Adds `autoPlay` and `fps` options.

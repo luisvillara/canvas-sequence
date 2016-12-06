@@ -209,8 +209,10 @@ if (!window.requestAnimationFrame) {
     })();
 }
 
-if (typeof define === 'function' && define.amd) {
-    define('CanvasSequence', CanvasSequence);
+if (typeof define === 'function' && typeof define.amd === 'object' && define.amd) {
+    define(function() {
+      return CanvasSequence;
+    });
 } else if (typeof module !== 'undefined' && module.exports) {
     module.exports = CanvasSequence;
 } else {
