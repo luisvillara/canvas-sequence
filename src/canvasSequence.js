@@ -43,9 +43,6 @@ class CanvasSequence {
             console.log("Please ensure the lib is loaded when DOM is loaded.")
         }
 
-        this.canvas.width = window.innerWidth;
-        this.canvas.height = window.innerHeight;
-
         this.sequencePath = sequencePath;
         this.sequenceStart = sequenceStart;
         this.sequenceEnd = sequenceEnd;
