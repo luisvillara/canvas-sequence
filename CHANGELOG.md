@@ -1,3 +1,7 @@
+# 1.2.0
+
+* Canvas now initializes with natural size, not window dimensions
+
 # 1.1.3
 
 * Fix package.json `main` definition
