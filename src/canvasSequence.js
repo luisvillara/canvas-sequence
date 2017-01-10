@@ -3,7 +3,18 @@ class CanvasSequence {
     /**
      * @see ctor
      */
-    constructor(canvasOrOpts, sequencePath, sequenceStart, sequenceEnd, fileType, loadCallback, onDraw, autoPlay = false, fps = 24, playOnce = false) {
+    constructor(
+        canvasOrOpts,
+        sequencePath,
+        sequenceStart,
+        sequenceEnd,
+        fileType,
+        loadCallback,
+        onDraw,
+        mode = CanvasSequence.PlayMode.SCROLL,
+        fps = 24,
+        playOnce = false
+    ) {
         if (typeof canvasOrOpts === 'object') {
             // first param is an object of options
             return this.ctor(canvasOrOpts);
@@ -17,24 +28,40 @@ class CanvasSequence {
             fileType,
             loadCallback,
             onDraw,
-            autoPlay,
+            mode,
             fps,
             playOnce
         });
     }
     /**
-     * @param opts.canvasId {String} - id of the canvas tag you want to use
-     * @param opts.sequencePath {String} - the path to your image sequence (ex. './img/sequence/'). If your images names are prefixed (ex. img_000.jpg) you must include the prefix in the path.
-     * @param opts.sequenceStart {Int} - the number of the first frame (ex. if your first frame is img_00056.jpg then sequenceStart = 56)
-     * @param opts.sequenceEnd {Int} - the number of the last frame
-     * @param opts.fileType {String} - the file extension you want to use (ex. 'jpg')
-     * @param opts.loadCallback {function} - a callback to be notified when all images are loaded and ready to use
-     * @param opts.onDraw {function(previousFrame:Int, currentFrame:Int)`} - a callback to be notified when the drawn frame changes
-     * @param opts.autoPlay {Boolean} - Defaults to `false`. a flag to make the sequence play without binding to scroll (like a regular video)
-     * @param opts.fps {Number} - Defaults to `24`. Frames per second to use for video-like playback
-     * @param opts.playOnce {Boolean} - Defaults to `false`. a flag to make the sequence play only once
+     * @param opts.fileType {String} - the file extension you want to use (ex.
+     * 'jpg')
+     * @param opts.loadCallback {function} - a callback to be notified when all
+     * images are loaded and ready to use
+     * @param opts.onDraw {function(previousFrame:Int, currentFrame:Int)`} - a
+     * callback to be notified when the drawn frame changes
+     * @param [opts.mode] {String} - Defaults to `'SCROLL'`. Method to use for
+     * controlling playback of the sequence
+     * See `CanvasSequence.PlayMode` for full list of supported play modes
+     * @param opts.fps {Number} - Defaults to `24`. Frames per second to use for
+     * @param opts.isPaused {Number} - Defaults to `false`. `true` to initialize
+     * with paused auto playback state.
+     * @param opts.playOnce {Boolean} - Defaults to `false`. a flag to make the
+     * sequence play only once
      */
-    ctor({ canvas, sequencePath, sequenceStart, sequenceEnd, fileType, loadCallback, onDraw, autoPlay = false, fps = 24, playOnce = false }) {
+    ctor({
+      canvas,
+      sequencePath,
+      sequenceStart,
+      sequenceEnd,
+      fileType,
+      loadCallback,
+      onDraw,
+      mode = CanvasSequence.PlayMode.SCROLL,
+      fps = 24,
+      isPaused = false,
+      playOnce = false
+    }) {
         this.sequence = [];
 
         this.canvas = document.getElementById(canvas);
@@ -53,13 +80,10 @@ class CanvasSequence {
         this.fileType = fileType || '.png';
 
         this.scrollHeight = document.body.scrollHeight;
-        this.scrollOffset = document.body.scrollTop;
-        this.clientHeight = window.innerHeight;
-
         this.loadCallback = loadCallback || function() {};
         this.onDraw = typeof onDraw === 'function' ? onDraw : null;
-        this.autoPlay = autoPlay;
-        this.isPaused = false;
+        this.mode = mode;
+        this.isPaused = isPaused;
         this.firstLoopEnd = false;
         this.fps = fps;
         this.playOnce = playOnce;
@@ -94,11 +118,9 @@ class CanvasSequence {
     }
 
     loadSequence() {
-
         var promises = [];
 
-        for(var i = this.sequenceStart; i <= this.sequenceEnd; i++) {
-
+        for (var i = this.sequenceStart; i <= this.sequenceEnd; i++) {
             var frameNumber = this.addLeadingZeros(i);
             var filename = this.sequencePath + frameNumber + this.fileType;
             var img = new Image;
@@ -122,60 +144,60 @@ class CanvasSequence {
         });
     }
 
-    getScrollFrameNumber() {
-        var scrollPercentage = (this.scrollOffset/(this.scrollHeight-this.clientHeight))*100;
-        var currentFrameNumber = Math.round(scrollPercentage*this.sequenceLength/100);
-        return currentFrameNumber;
-    }
-
-    getAutoPlayFrameNumber() {
-        return Math.round(this.fps * this.playOffset);
-    }
-
     getNextFrameNumber() {
-        if (this.autoPlay) {
-            return this.getAutoPlayFrameNumber();
-        }
-
-        return this.getScrollFrameNumber();
+        return Math.round(this.progress * this.sequenceLength);
     }
 
     syncScrollPosition() {
-        this.scrollOffset = document.body.scrollTop;
+        const scrollOffset = document.body.scrollTop;
+        return scrollOffset / this.scrollHeight;
     }
 
     syncAutoPlayPosition() {
         const now = +new Date();
         if (!this.startTime) {
             this.startTime = now;
-            this.isPaused = false;
         }
 
         if (!this.isPaused) {
-            this.playOffset = ((now - this.startTime) / 1000) % (this.sequenceLength / this.fps);
+            const sequenceDuration = this.sequenceLength / this.fps;
+            // Modulo to loop
+            const playOffset = ((now - this.startTime) / 1000) % sequenceDuration;
+            return playOffset / sequenceDuration;
         }
+
+        return this.progress;
     }
 
     syncPlayPosition() {
-        // no scroll tracking for autoplay
-        if (this.autoPlay) {
-            return this.syncAutoPlayPosition();
-        }
+        switch (this.mode) {
+            case CanvasSequence.PlayMode.AUTO: {
+                this.progress = this.syncAutoPlayPosition();
+                break;
+            }
 
-        return this.syncScrollPosition();
+            case CanvasSequence.PlayMode.MANUAL:
+                // Do Nothing
+                break;
+
+            case CanvasSequence.PlayMode.SCROLL:
+            default:
+                this.progress = this.syncScrollPosition();
+        }
+    }
+
+    setProgress(progress) {
+        this.progress = progress;
     }
 
     drawImage(frame) {
-
         if(frame >= 0 && frame < this.sequence.length) {
-            // this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
             if(this.sequence[frame].complete) {
                 this.context.drawImage(this.sequence[frame], 0, 0, this.canvas.width, this.canvas.height);
             } else {
                 console.log("The current frame has not been loaded. Please ensure all images are loaded before updating the canvas.")
             }
         }
-
     }
 
     renderFrame() {
@@ -205,6 +227,22 @@ class CanvasSequence {
 
 }
 
+/**
+ * Supported playback control options
+ */
+CanvasSequence.PlayMode = {
+    // SCROLL - (Default) progress is bound to scroll position relative to height
+    // of document
+    SCROLL: 'SCROLL',
+
+    // AUTO - not bound to scroll, plays like a regular video
+    AUTO  : 'AUTO',
+
+    // MANUAL - playback management is left to the owner. Frame is updatable with
+    // `.setProgress` method.
+    MANUAL: 'MANUAL'
+}
+
 if (!window.requestAnimationFrame) {
     window.requestAnimationFrame = (function() {
         return window.webkitRequestAnimationFrame ||
@@ -219,7 +257,7 @@ if (!window.requestAnimationFrame) {
 
 if (typeof define === 'function' && typeof define.amd === 'object' && define.amd) {
     define(function() {
-      return CanvasSequence;
+        return CanvasSequence;
     });
 } else if (typeof module !== 'undefined' && module.exports) {
     module.exports = CanvasSequence;
