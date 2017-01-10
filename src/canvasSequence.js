@@ -118,15 +118,11 @@ class CanvasSequence {
     }
 
     loadSequence() {
-
         var promises = [];
 
-        for(var i = this.sequenceStart; i <= this.sequenceEnd; i++) {
-
+        for (var i = this.sequenceStart; i <= this.sequenceEnd; i++) {
             var frameNumber = this.addLeadingZeros(i);
             var filename = this.sequencePath + frameNumber + this.fileType;
-
-
             var img = new Image;
             img.src = filename;
 
@@ -174,7 +170,6 @@ class CanvasSequence {
     }
 
     syncPlayPosition() {
-        // no scroll tracking for auto playback
         switch (this.mode) {
             case CanvasSequence.PlayMode.AUTO: {
                 this.progress = this.syncAutoPlayPosition();
@@ -196,16 +191,13 @@ class CanvasSequence {
     }
 
     drawImage(frame) {
-
         if(frame >= 0 && frame < this.sequence.length) {
-            // this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
             if(this.sequence[frame].complete) {
                 this.context.drawImage(this.sequence[frame], 0, 0, this.canvas.width, this.canvas.height);
             } else {
                 console.log("The current frame has not been loaded. Please ensure all images are loaded before updating the canvas.")
             }
         }
-
     }
 
     renderFrame() {
