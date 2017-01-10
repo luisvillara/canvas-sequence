@@ -17,7 +17,6 @@ Alternatively, you can use `gulp compile` to recompile only when needed.
 
 ## Parameters
 
-CanvasSequence accepts 6 parameters, the last one is optional.
 - **canvasId** (String) : id of the canvas tag you want to use
 - **sequencePath** (String) : the path to your image sequence (ex. './img/sequence/').
 If your images names are prefixed (ex. img_000.jpg) you must include the prefix in the path.
@@ -26,8 +25,12 @@ If your images names are prefixed (ex. img_000.jpg) you must include the prefix 
 - **fileType** (String) : the file extension you want to use (ex. 'jpg')
 - **loadCallback** (function) : a callback to be notified when all images are loaded and ready to use
 - **onDraw** (`function(previousFrame:Int, currentFrame:Int)`) : a callback to be notified when the drawn frame changes
-- **autoPlay** (Boolean) : Defaults to `false`. a flag to make the sequence play without binding to scroll (like a regular video)
-- **fps** (Number) : Defaults to `24`. frames per second to use for video-like playback
+- **mode** (String) : Optional, defaults to `SCROLL`. Method to use for
+controlling playback of the sequence. See `CanvasSequence.PlayMode` for full
+list of supported play modes.
+- **fps** (Number) : Optional, defaults to `24`. frames per second to use for video-like playback
+- **playOnce** (Boolean) - Optional, defaults to `false`. a flag to make the sequence play
+only once (when using `AUTO` mode)
 ## Init
 
 ```javascript

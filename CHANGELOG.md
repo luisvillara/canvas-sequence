@@ -1,3 +1,9 @@
+# 1.3.0
+
+* Replaces `autoPlay` with `mode`
+* Adds support for `manual` playback mode
+* Adds `playOnce` flag for use with `auto` playback mode
+
 # 1.2.0
 
 * Canvas now initializes with natural size, not window dimensions
