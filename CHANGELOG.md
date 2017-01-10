@@ -2,6 +2,9 @@
 
 * Replaces `autoPlay` with `mode`
 * Adds support for `manual` playback mode
+
+# 1.2.1
+
 * Adds `playOnce` flag for use with `auto` playback mode
 
 # 1.2.0
