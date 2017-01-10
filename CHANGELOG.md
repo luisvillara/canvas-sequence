@@ -1,4 +1,9 @@
-# 1.3.0
+# 1.3.1
+
+* Fix of 1.3.0
+* Builds dist
+
+# 1.3.0 (Bad)
 
 * Replaces `autoPlay` with `mode`
 * Adds support for `manual` playback mode
