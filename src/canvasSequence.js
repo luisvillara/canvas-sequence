@@ -192,6 +192,7 @@ class CanvasSequence {
 
     drawImage(frame) {
         if(frame >= 0 && frame < this.sequence.length) {
+            this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
             if(this.sequence[frame].complete) {
                 this.context.drawImage(this.sequence[frame], 0, 0, this.canvas.width, this.canvas.height);
             } else {

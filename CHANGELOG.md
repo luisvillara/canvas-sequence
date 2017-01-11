@@ -1,3 +1,7 @@
+# 1.3.2
+
+* Fix bug where canvas isn't cleared for images with transparency
+
 # 1.3.1
 
 * Fix of 1.3.0
