@@ -1,3 +1,7 @@
+# 1.3.3
+
+* Fix: canvas should not be blank on first render (#6)
+
 # 1.3.2
 
 * Fix bug where canvas isn't cleared for images with transparency
