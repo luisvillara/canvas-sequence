@@ -156,7 +156,8 @@ class CanvasSequence {
     }
 
     syncScrollPosition() {
-        const scrollOffset = document.body.scrollTop;
+        const scrollOffset =
+            window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
         return scrollOffset / this.scrollHeight;
     }
 
