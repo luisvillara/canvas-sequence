@@ -13,7 +13,8 @@ class CanvasSequence {
         onDraw,
         mode = CanvasSequence.PlayMode.SCROLL,
         fps = 24,
-        playOnce = false
+        playOnce = false,
+        preRender = false
     ) {
         if (typeof canvasOrOpts === 'object') {
             // first param is an object of options
@@ -30,7 +31,8 @@ class CanvasSequence {
             onDraw,
             mode,
             fps,
-            playOnce
+            playOnce,
+            preRender
         });
     }
     /**
@@ -48,6 +50,8 @@ class CanvasSequence {
      * with paused auto playback state.
      * @param opts.playOnce {Boolean} - Defaults to `false`. a flag to make the
      * sequence play only once
+     * @param opts.preRender {Boolean} - Defaults to `false` a flag to make
+     * the pre-rendering.
      */
     ctor({
       canvas,
@@ -60,7 +64,8 @@ class CanvasSequence {
       mode = CanvasSequence.PlayMode.SCROLL,
       fps = 24,
       isPaused = false,
-      playOnce = false
+      playOnce = false,
+      preRender = false
     }) {
         this.sequence = [];
 
@@ -71,6 +76,10 @@ class CanvasSequence {
         } else {
             console.log("Please ensure the lib is loaded when DOM is loaded.")
         }
+
+        // Pre-rendering
+        this.rendered = preRender ? document.createElement('canvas') : null;
+        this.renderedContext = preRender ? this.rendered.getContext('2d') : null;
 
         this.sequencePath = sequencePath;
         this.sequenceStart = sequenceStart;
@@ -88,6 +97,7 @@ class CanvasSequence {
         this.firstLoopEnd = false;
         this.fps = fps;
         this.playOnce = playOnce;
+        this.preRender = preRender;
 
         this.loadSequence();
     }
@@ -200,11 +210,22 @@ class CanvasSequence {
 
     drawImage(frame) {
         if(frame >= 0 && frame < this.sequence.length) {
-            this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-            if(this.sequence[frame].complete) {
-                this.context.drawImage(this.sequence[frame], 0, 0, this.canvas.width, this.canvas.height);
+            // Pre-rendering
+            if (this.preRender) {
+                this.renderedContext.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                if(this.sequence[frame].complete) {
+                    this.renderedContext.drawImage(this.sequence[frame], 0, 0, this.canvas.width, this.canvas.height);
+                } else {
+                    console.log("The current frame has not been loaded. Please ensure all images are loaded before updating the canvas.")
+                }
+                this.context.drawImage(this.renderedContext, this.canvas.width, this.canvas.height);
             } else {
-                console.log("The current frame has not been loaded. Please ensure all images are loaded before updating the canvas.")
+                this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                if(this.sequence[frame].complete) {
+                    this.context.drawImage(this.sequence[frame], 0, 0, this.canvas.width, this.canvas.height);
+                } else {
+                    console.log("The current frame has not been loaded. Please ensure all images are loaded before updating the canvas.")
+                }
             }
         }
     }
